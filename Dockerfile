@@ -1,8 +1,8 @@
 FROM quay.io/gurusensei/gurubhay:latest
 
-RUN git clone https://github.com/Lazack28/Lazack-Device /root/lazack
+RUN git clone https://github.com/JawadTechXD/JAWAD-MD/root/ikjawad
 
-WORKDIR /root/lazack/
+WORKDIR /root/ikjawad/
 
 RUN npm install --platform=linuxmusl
 
