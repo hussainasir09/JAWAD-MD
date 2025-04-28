@@ -34,9 +34,9 @@ import { default as Pino, default as pino } from 'pino'
 import syntaxerror from 'syntax-error'
 import { format } from 'util'
 import yargs from 'yargs'
-import CloudDBAdapter from '../lib/cloudDBAdapter.js'
-import { MongoDB } from '../lib/mongoDB.js'
-import { makeWASocket, protoType, serialize } from '../lib/simple.js'
+import CloudDBAdapter from './lib/cloudDBAdapter.js'
+import { MongoDB } from './lib/mongoDB.js'
+import { makeWASocket, protoType, serialize } from './lib/simple.js'
 
 const {
   DisconnectReason,
@@ -311,13 +311,13 @@ runCleanup()
 
 function clearsession() {
   let prekey = []
-  const directorio = readdirSync('../session')
+  const directorio = readdirSync('./session')
   const filesFolderPreKeys = directorio.filter(file => {
     return file.startsWith('pre-key-')
   })
   prekey = [...prekey, ...filesFolderPreKeys]
   filesFolderPreKeys.forEach(files => {
-    unlinkSync(`../session/${files}`)
+    unlinkSync(`./session/${files}`)
   })
 }
 
@@ -455,7 +455,7 @@ global.reloadHandler = async function (restatConn) {
   return true
 }
 
-const pluginFolder = global.__dirname(join(__dirname, '../plugins/index'))
+const pluginFolder = global.__dirname(join(__dirname, './plugins/index'))
 const pluginFilter = filename => /\.js$/.test(filename)
 global.plugins = {}
 async function filesInit() {
