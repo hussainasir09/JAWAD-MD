@@ -1,16 +1,15 @@
 {
   "name": "JAWAD-MD",
-  "description": " Whatsapp botz made by team lazack.",
-  "keywords": [
-    "whatsapp bot"
-  ],
-  "repository": "https://github.com/Lazack28/Lazack-Device",
+  "description": "Fast, Smart, and Packed with Features. Meet JAWAD-MD – Your Ultimate WhatsApp Bot.",
+  "logo": "https://files.catbox.moe/dm39k4.jpg",
+  "keywords": ["jawad-md", "whatsapp-bot", "whatsapp md bot"],
+  "repository": "https://github.com/JawadTechXD/JAWAD-MD",
   "stack": "container",
   "env": {
     "OWNERS": {
       "description": "owner numbers",
       "required": true,
-      "value": "255734980103"
+      "value": "919341378016"
     },
     "BOTNAME": {
       "description": "Give your BOT a name",
