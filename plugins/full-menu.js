@@ -1,4 +1,3 @@
-import axios from 'axios';
 import fs from 'fs';
 import os from 'os';
 
@@ -7,26 +6,27 @@ let handler = async function (m, { conn, usedPrefix }) {
     await m.react('⏳');
 
     // Get current hour for pushwish
-    let time = global.db.data.users[m.sender].time;
+    let hours = new Date().getHours();
     let pushwish = '';
-    if (time >= 0 && time < 4) {
+    if (hours >= 0 && hours < 4) {
       pushwish = 'Late night🌠';
-    } else if (time >= 4 && time < 6) {
+    } else if (hours >= 4 && hours < 6) {
       pushwish = 'Early morning🌥️';
-    } else if (time >= 6 && time < 12) {
+    } else if (hours >= 6 && hours < 12) {
       pushwish = 'Good morning 🌅';
-    } else if (time >= 12 && time < 16) {
+    } else if (hours >= 12 && hours < 16) {
       pushwish = 'Good afternoon 🌩️';
-    } else if (time >= 16 && time < 19) {
+    } else if (hours >= 16 && hours < 19) {
       pushwish = 'Good evening 🌆';
-    } else if (time >= 19 && time <= 23) {
+    } else if (hours >= 19 && hours <= 23) {
       pushwish = 'Good night 🌃';
     } else {
       pushwish = 'Hello';
     }
 
     const mode = process.env.MODE || 'default';
-    const prefix = usedPrefix;
+    const uptime = process.uptime();
+    const formattedUptime = formatUptime(uptime);
 
     // Bot info header
     const botInfo = `
@@ -39,7 +39,7 @@ let handler = async function (m, { conn, usedPrefix }) {
 ┃★│ Mode : *${mode}*
 ┃★│ Platform : *${os.platform()}*
 ┃★│ Prefix :  ${usedPrefix} 
-┃★│ UPTIME: *${uptime}*
+┃★│ UPTIME: *${formattedUptime}*
 ┃★│ Version : *1.1.0*
 ┃★╰──────────────
 ╰━━━━━━━━━━━━━━━┈⊷ 
@@ -262,30 +262,53 @@ let handler = async function (m, { conn, usedPrefix }) {
     // Using relative path for the thumbnail
     const thumbnailPath = './assets/jawadmd.png';
     
-    if (fs.existsSync(thumbnailPath)) {
-      // Read the image file synchronously
-      const imageBuffer = fs.readFileSync(thumbnailPath);
-      
-      // Send image with caption using the buffer
-      await conn.sendMessage(m.chat, {
-        image: imageBuffer,
-        caption: botInfo,
-        mentions: [m.sender]
-      }, { quoted: m });
-    } else {
-      // Fallback to text if image not found
+    try {
+      if (fs.existsSync(thumbnailPath)) {
+        // Read the image file synchronously
+        const imageBuffer = fs.readFileSync(thumbnailPath);
+        
+        // Send image with caption using the buffer
+        await conn.sendMessage(m.chat, {
+          image: imageBuffer,
+          caption: botInfo,
+          mentions: [m.sender]
+        }, { quoted: m });
+      } else {
+        // Fallback to text if image not found
+        await conn.sendMessage(m.chat, { text: botInfo }, { quoted: m });
+        console.warn('Thumbnail not found at:', thumbnailPath);
+      }
+
+      await m.react('✅');
+    } catch (sendError) {
+      console.error('Error sending message:', sendError);
+      await m.react('❌');
+      // Try sending just text if image send fails
       await conn.sendMessage(m.chat, { text: botInfo }, { quoted: m });
-      console.warn('Thumbnail not found at:', thumbnailPath);
     }
 
-    await m.react('✅');
-
   } catch (err) {
-    console.error(err);
+    console.error('Menu error:', err);
     await m.react('❌');
-    await m.reply('Error fetching repository information');
+    await m.reply('❌ Error displaying menu. Please try again later.');
   }
 };
+
+// Helper function to format uptime
+function formatUptime(seconds) {
+  const days = Math.floor(seconds / (3600 * 24));
+  const hours = Math.floor((seconds % (3600 * 24)) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  let uptimeString = '';
+  if (days > 0) uptimeString += `${days}d `;
+  if (hours > 0) uptimeString += `${hours}h `;
+  if (minutes > 0) uptimeString += `${minutes}m `;
+  uptimeString += `${secs}s`;
+
+  return uptimeString;
+}
 
 handler.help = ["menu", "fullmenu", "list"];
 handler.tags = ["main"];
