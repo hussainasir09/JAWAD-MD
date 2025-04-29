@@ -18,19 +18,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 │
 ╰──────────────⬣`;
 
-  await conn.sendMessage(m.chat, {
-    text: str,
-    contextInfo: {
-      mentionedJid: [m.sender],
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363354023106228@newsletter',
-        newsletterName: "JAWAD-MD",
-        serverMessageId: -1
-      },
-      forwardingScore: 999
-    }
-  });
+  await conn.sendMessage(m.chat, { text: str });
 
   m.react('✅');
 };
