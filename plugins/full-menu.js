@@ -5,25 +5,6 @@ let handler = async function (m, { conn, usedPrefix }) {
   try {
     await m.react('⏳');
 
-    // Get current hour for pushwish
-    let hours = new Date().getHours();
-    let pushwish = '';
-    if (hours >= 0 && hours < 4) {
-      pushwish = 'Late night🌠';
-    } else if (hours >= 4 && hours < 6) {
-      pushwish = 'Early morning🌥️';
-    } else if (hours >= 6 && hours < 12) {
-      pushwish = 'Good morning 🌅';
-    } else if (hours >= 12 && hours < 16) {
-      pushwish = 'Good afternoon 🌩️';
-    } else if (hours >= 16 && hours < 19) {
-      pushwish = 'Good evening 🌆';
-    } else if (hours >= 19 && hours <= 23) {
-      pushwish = 'Good night 🌃';
-    } else {
-      pushwish = 'Hello';
-    }
-
     const mode = process.env.MODE || 'default';
     const uptime = process.uptime();
     const formattedUptime = formatUptime(uptime);
@@ -39,11 +20,10 @@ let handler = async function (m, { conn, usedPrefix }) {
 ┃★│ Mode : *${mode}*
 ┃★│ Platform : *${os.platform()}*
 ┃★│ Prefix :  ${usedPrefix} 
-┃★│ UPTIME: *${formattedUptime}*
+┃★│ Uptime : *${formattedUptime}*
 ┃★│ Version : *1.1.0*
 ┃★╰──────────────
 ╰━━━━━━━━━━━━━━━┈⊷ 
-> ${pushwish} ${m.pushName || 'User'}
 
 *╭────⬡ DOWNLOADER ⬡────*
 *├▢* ${usedPrefix}facebook <url>
@@ -267,15 +247,15 @@ let handler = async function (m, { conn, usedPrefix }) {
         // Read the image file synchronously
         const imageBuffer = fs.readFileSync(thumbnailPath);
         
-        // Send image with caption using the buffer
-        await conn.sendMessage(m.chat, {
+        // Send image with caption using the buffer and reply function
+        await conn.reply(m.chat, {
           image: imageBuffer,
           caption: botInfo,
           mentions: [m.sender]
-        }, { quoted: m });
+        }, m);
       } else {
-        // Fallback to text if image not found
-        await conn.sendMessage(m.chat, { text: botInfo }, { quoted: m });
+        // Fallback to text if image not found using reply function
+        await conn.reply(m.chat, botInfo, m);
         console.warn('Thumbnail not found at:', thumbnailPath);
       }
 
@@ -283,14 +263,14 @@ let handler = async function (m, { conn, usedPrefix }) {
     } catch (sendError) {
       console.error('Error sending message:', sendError);
       await m.react('❌');
-      // Try sending just text if image send fails
-      await conn.sendMessage(m.chat, { text: botInfo }, { quoted: m });
+      // Try sending just text if image send fails using reply function
+      await conn.reply(m.chat, botInfo, m);
     }
 
   } catch (err) {
     console.error('Menu error:', err);
     await m.react('❌');
-    await m.reply('❌ Error displaying menu. Please try again later.');
+    await conn.reply(m.chat, '❌ Error displaying menu. Please try again later.', m);
   }
 };
 
