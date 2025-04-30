@@ -92,7 +92,7 @@ let handler = async function (m, { conn, usedPrefix }) {
 *├▢* ${usedPrefix}setppbotfull
 *├▢* ${usedPrefix}getplugin <name file>
 *├▢* ${usedPrefix}getfile <name file>
-*├▢* ${usedPrefix}join <chat.whatsapp.com> <dias>
+*├▢* ${usedPrefix}join <link>
 *├▢* ${usedPrefix}reset <54xxx>
 *├▢* ${usedPrefix}resetprefix
 *├▢* ${usedPrefix}restart
