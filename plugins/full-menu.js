@@ -290,8 +290,8 @@ function formatUptime(seconds) {
   return uptimeString;
 }
 
-handler.help = ["menu", "fullmenu", "list"];
+handler.help = ["menu2", "fullmenu"];
 handler.tags = ["main"];
-handler.command = ['menu', 'fullmenu', 'list'];
+handler.command = ['menu2', 'fullmenu'];
 
 export default handler;
