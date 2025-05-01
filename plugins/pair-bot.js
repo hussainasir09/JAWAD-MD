@@ -21,7 +21,7 @@ import 'path';
 import pino from 'pino';
 import 'ws';
 import '@hapi/boom';
-import { makeWASocket } from '../lib/simple.js';
+import { makeWASocket } from '../lib/jawadx.js';
 
 const defaultDB = {
   data: {}
