@@ -1,6 +1,6 @@
-name: sigmamd
+name: jawadmd
 services:
-  - name: sigma-md-service
+  - name: jawad-md-service
     type: web
     ports:
       - 3000

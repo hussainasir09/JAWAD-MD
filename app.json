@@ -1,90 +1,141 @@
 {
   "name": "JAWAD-MD",
-  "description": "Fast, Smart, and Packed with Features. Meet JAWAD-MD – Your Ultimate WhatsApp Bot.",
-  "logo": "https://files.catbox.moe/dm39k4.jpg",
-  "keywords": ["jawad-md", "whatsapp-bot", "whatsapp md bot"],
+  "description": "Advanced WhatsApp Multi-Device User Bot",
   "repository": "https://github.com/JawadTechXD/JAWAD-MD",
+  "logo": "https://raw.githubusercontent.com/JawadTechXD/JawadTechXD/refs/heads/main/ByteXSigma.jpg",
+  "success_url": "https://github.com/JawadTechXD/JAWAD-MD",
+  "keywords": [
+    "nodejs", "heroku", "whatsapp-bot", "multi-device", 
+    "automation", "javascript", "sigmamd", "whatsapp-api"
+  ],
+  "image": "heroku/nodejs",
   "stack": "container",
   "env": {
-    "OWNERS": {
-      "description": "owner numbers",
+    "SESSION_ID": {
+      "description": "Your WhatsApp session ID (required for authentication)",
       "required": true,
-      "value": "919341378016"
+      "value": ""
     },
-    "BOTNAME": {
-      "description": "Give your BOT a name",
+    "BOT_NAME": {
+      "description": "Display name for your bot",
       "required": true,
       "value": "JAWAD-MD"
     },
-    "DATABASE_URL": {
-      "description": "your mongodb database url",
+    "OWNER_NUMBER": {
+      "description": "Bot owner's number with country code and name (format: '1234567890,NAME')",
+      "required": true,
+      "value": "919341378016,MASTER"
+    },
+    "OWNER_REACT_EMOJi": {
+      "description": "Custom emoji for owner reactions (optional)",
       "required": false,
-      "value": ""
+      "value": "🤍"
     },
     "MODE": {
-      "description": "mode public or private",
+      "description": "Bot accessibility mode - 'public' or 'private'",
       "required": true,
       "value": "public"
     },
-    "SESSION_ID": {
-      "description": "get you're session through bot website",
-      "required": true,
-      "value": ""
-    },
     "PREFIX": {
-      "description": "put any one symbol here except @ and + , leave it Blank if you want to use multiple prefix",
+      "description": "Command prefix symbol (leave empty for multiple prefixes)",
       "required": false,
       "value": ""
     },
-     "HKEY": {
-      "description": "Put your Heroku api key Here , Get one from here https://dashboard.heroku.com/account",
+    "AlwaysOnline": {
+      "description": "Maintain constant online presence (true/false)",
+      "required": false,
+      "value": "false" 
+    },
+    "antidelete": {
+      "description": "Forward deleted messages: 'private' (PMs only), 'all' (PMs+groups), or 'false' (disabled)",
+      "required": false,
+      "value": "all"
+    },
+    "DATABASE_URL": {
+      "description": "MongoDB/Postgres/PrinceDB connection URL for enhanced performance",
       "required": false,
       "value": ""
     },
-     "HAPP": {
-      "description": "Put the Heroku app name, same as above entered",
-      "required": false,
-      "value": ""
-    },
-    "statusview": {
-      "description": "make it true if you want bot to view status",
+    "ANTI_LINK": {
+      "description": "Automatically delete links and ban senders (true/false)",
       "required": false,
       "value": "true"
     },
-    "autoRead": {
-      "description": "make it true if you want bot to read messages",
-      "required": false,
-      "value": ""
-    },
-    "antidelete": {
-      "description": "bot will forward deleted messages if you make it true",
+    "AUTO_REACT": {
+      "description": "Enable automatic message reactions (true/false)",
       "required": false,
       "value": "false"
     },
-     "REMOVEBG_KEY": {
-      "description": "your RemoveBg api key",
+    "AUTOREACT_EMOJIS": {
+      "description": "Custom emojis for auto-reactions (comma-separated, leave empty for defaults)",
       "required": false,
-      "value": ""
-    }
+      "value": "♥️,🤗,❤️,💞,❣️,💙,💛,🤍,💚,😍,🥰,💝,💖,💗,💓,💞,💕,❣️,💘,💟,🖤,🤎,💜,💫,🌸"
     },
-    "buildpacks": [
+    "VAR_APP": {
+      "description": "Your Heroku app name (must match app name above)",
+      "required": true,
+      "value": ""
+    },
+    "VAR_KEY": {
+      "description": "Heroku API key (found in Account Settings)",
+      "required": true,
+      "value": ""
+    },
+    "STATUSVIEW": {
+      "description": "Automatically view WhatsApp status updates (true/false)",
+      "required": false,
+      "value": "true"
+    },
+    "StatusLikes": {
+      "description": "Automatically like viewed statuses (true/false)",
+      "required": false,
+      "value": "false"
+    },
+    "STATUS_LIKE_EMOJIS": {
+      "description": "Custom emojis for status likes (comma-separated)",
+      "required": false,
+      "value": "♥️,🤗,❤️,💞,❣️,💙,💛,🤍,💚,😍,🥰,💝,💖,💗,💓,💞,💕,❣️,💘,💟,🖤,🤎,💜,💫,🌸"
+    },
+    "STATUS_MSG": {
+      "description": "Notification message when viewing statuses",
+      "required": false,
+      "value": "Status Seen By JAWAD-MD"
+    },
+    "REJECTSCALLS": {
+      "description": "Call handling: 'truemsg' (reject with message), 'true' (silent reject), or 'false' (allow calls)",
+      "required": false,
+      "value": "false"
+    },
+    "CALLMSG": {
+      "description": "Custom message for rejected calls",
+      "required": false,
+      "value": "Call Rejected Automatically - Owner Is Busy"
+    },
+    "ANTIFAKE_USERS": {
+      "description": "Block numbers from groups (comma-separated country codes, e.g., '1,212,63,44')",
+      "required": false,
+      "value": "1,212,63,44"
+    },
+    "PACK_NAME": {
+      "description": "Default sticker pack name",
+      "required": false,
+      "value": "JAWAD-MD"
+    },
+    "DL_MSG": {
+      "description": "Success message for downloaded media",
+      "required": true,
+      "value": "_*📥DOWNLOADED SUCCESSFULLY✅*_"
+    } 
+  },
+  "buildpacks": [
     {
       "url": "heroku/nodejs"
     },
     {
-      "url": "https://github.com/DuckyTeam/heroku-buildpack-imagemagick.git"
+      "url": "https://github.com/bogini/heroku-buildpack-graphicsmagick"
     },
     {
-      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-    },
-    {
-      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
+      "url": "https://github.com/heroku/heroku-buildpack-activestorage-preview"
     }
-  ],
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "basic"
-    }
-  }
+  ]
 }
