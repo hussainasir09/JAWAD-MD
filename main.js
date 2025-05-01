@@ -1,7 +1,7 @@
 import './config.js';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
-import path, { join } from 'path';
+import path, { join, dirname as pathDirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { platform } from 'process';
 import 'ws';
@@ -65,7 +65,7 @@ global.__filename = function filename(url = import.meta.url, isWindows = platfor
   return isWindows ? /file:\/\/\//.test(url) ? fileURLToPath(url) : url : pathToFileURL(url).toString();
 };
 global.__dirname = function dirname(path) {
-  return path.dirname(global.__filename(path, true));
+  return pathDirname(global.__filename(path, true));
 };
 global.__require = function require(url = import.meta.url) {
   return createRequire(url);
