@@ -1,3 +1,4 @@
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
 import './config.js';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
@@ -88,7 +89,7 @@ global.API = (apiName, endpoint = '/', query = {}, apiKeyName) =>
   })) : '');
 
 global.timestamp = {
-  'start': new Date()
+  start: new Date()
 };
 
 const __dirname = global.__dirname(import.meta.url);
@@ -114,19 +115,18 @@ global.loadDatabase = async function loadDatabase() {
       }
     }, 1000));
   }
-  if (global.db.data !== null) {
-    return;
-  }
+  if (global.db.data !== null) return;
+  
   global.db.READ = true;
   await global.db.read().catch(console.error);
   global.db.READ = null;
   global.db.data = {
-    'users': {},
-    'chats': {},
-    'stats': {},
-    'msgs': {},
-    'sticker': {},
-    'settings': {},
+    users: {},
+    chats: {},
+    stats: {},
+    msgs: {},
+    sticker: {},
+    settings: {},
     ...(global.db.data || {})
   };
   global.db.chain = chain(global.db.data);
@@ -135,7 +135,7 @@ global.loadDatabase = async function loadDatabase() {
 loadDatabase();
 
 global.authFile = 'sessions';
-const { state, saveState, saveCreds } = await useMultiFileAuthState(global.authFile);
+const { state, saveCreds } = await useMultiFileAuthState(global.authFile);
 
 const cacheConfig = {
   stdTTL: 0,
@@ -143,24 +143,17 @@ const cacheConfig = {
 };
 
 const msgRetryCounterCache = new NodeCache(cacheConfig);
-
-const userDevicesCacheConfig = {
-  stdTTL: 0,
-  checkperiod: 0
-};
-
-const userDevicesCache = new NodeCache(userDevicesCacheConfig);
+const userDevicesCache = new NodeCache(cacheConfig);
 
 let phoneNumber = global.botNumber?.[0];
 const methodCodeQR = process.argv.includes('qr');
 const methodCode = !!phoneNumber || process.argv.includes("code");
 const MethodMobile = process.argv.includes("mobile");
 
-const rlConfig = {
+const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
-};
-const rl = readline.createInterface(rlConfig);
+});
 const question = (text) => new Promise((resolve) => rl.question(text, resolve));
 let option;
 
@@ -168,73 +161,50 @@ if (methodCodeQR) {
   option = '1';
 }
 
-if (!methodCodeQR && !methodCode && !fs.existsSync('./' + authFile + '/creds.json')) {
+if (!methodCodeQR && !methodCode && !fs.existsSync('./' + global.authFile + '/creds.json')) {
   do {
     option = await question("\n\n\n✳️ Enter the connection method\n\n\n🔺 1 : per QR code\n🔺 2 : per 8-digit CODE\n\n\n\n");
     if (!/^[1-2]$/.test(option)) {
       console.log("\n\n🔴 Enter only one option \n\n 1 or 2\n\n");
     }
-  } while (option !== '1' && option !== '2' || fs.existsSync('./' + authFile + "/creds.json"));
+  } while (option !== '1' && option !== '2' || fs.existsSync('./' + global.authFile + "/creds.json"));
 }
 
 console.info = () => {};
 
-const silentLoggerConfig = {
-  level: "silent"
-};
-
-const fatalLoggerConfig = {
-  level: 'fatal'
-};
-
-const childLoggerConfig = {
-  level: 'fatal'
-};
-
 const connectionOptions = {
-  logger: pino(silentLoggerConfig),
+  logger: pino({ level: 'silent' }),
   printQRInTerminal: option === '1' || methodCodeQR,
   mobile: MethodMobile,
-  browser: option === '1' ? ["jawad", "Safari", '2.0.0'] : methodCodeQR ? ["jawad", "Safari", "2.0.0"] : ['Ubuntu', 'Chrome', "20.0.04"],
+  browser: option === '1' ? ["JAWAD-MD", "Safari", '2.0.0'] : methodCodeQR ? ["JAWAD-MD", "Safari", "2.0.0"] : ['Ubuntu', 'Chrome', "20.0.04"],
   auth: {
     creds: state.creds,
-    keys: makeCacheableSignalKeyStore(state.keys, pino(fatalLoggerConfig).child(childLoggerConfig))
+    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' }))
   },
-  waWebSocketUrl: 'wss://web.whatsapp.com/ws/chat?ED=CAIICA',
   markOnlineOnConnect: true,
   generateHighQualityLinkPreview: true,
   getMessage: async (key) => {
     let normalizedJid = jidNormalizedUser(key.remoteJid);
     let message = await store.loadMessage(normalizedJid, key.id);
-    return message?.['message'] || '';
+    return message?.message || '';
   },
-  patchMessageBeforeSending: async (message) => {
-    let counter = 0;
-    global.conn.uploadPreKeysToServerIfRequired();
-    counter++;
-    return message;
-  },
-  msgRetryCounterCache: msgRetryCounterCache,
-  userDevicesCache: userDevicesCache,
+  msgRetryCounterCache,
   defaultQueryTimeoutMs: undefined,
-  cachedGroupMetadata: (groupId) => global.conn.chats[groupId] ?? {},
   version: [2, 3000, 1015901307]
 };
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!fs.existsSync('./' + authFile + "/creds.json")) {
+if (!fs.existsSync('./' + global.authFile + "/creds.json")) {
   if (option === '2' || methodCode) {
     option = '2';
     if (!conn.authState.creds.registered) {
-      if (MethodMobile) {
-        throw new Error("⚠️ Mobile API Error Occurred");
-      }
+      if (MethodMobile) throw new Error("⚠️ Mobile API Error Occurred");
       
       let phoneNumberToAdd;
       if (!!phoneNumber) {
         phoneNumberToAdd = phoneNumber.replace(/[^0-9]/g, '');
-        if (!Object.keys(PHONENUMBER_MCC).some((countryCode) => phoneNumberToAdd.startsWith(countryCode))) {
+        if (!Object.keys(PHONENUMBER_MCC).some(countryCode => phoneNumberToAdd.startsWith(countryCode))) {
           console.log(chalk.bgBlack(chalk.bold.redBright("\n\n✴️ Your number must start with the country code")));
           process.exit(0);
         }
@@ -242,7 +212,7 @@ if (!fs.existsSync('./' + authFile + "/creds.json")) {
         while (true) {
           phoneNumberToAdd = await question(chalk.bgBlack(chalk.bold.greenBright("\n\n✳️ Enter your number\n\nExample: 92310xxxx\n\n")));
           phoneNumberToAdd = phoneNumberToAdd.replace(/[^0-9]/g, '');
-          if (phoneNumberToAdd.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some((countryCode) => phoneNumberToAdd.startsWith(countryCode))) {
+          if (phoneNumberToAdd.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(countryCode => phoneNumberToAdd.startsWith(countryCode))) {
             break;
           } else {
             console.log(chalk.bgBlack(chalk.bold.redBright("\n\n✴️ Make sure to add the country code")));
@@ -253,7 +223,7 @@ if (!fs.existsSync('./' + authFile + "/creds.json")) {
       
       setTimeout(async () => {
         let pairingCode = await conn.requestPairingCode(phoneNumberToAdd);
-        pairingCode = pairingCode?.["match"](/.{1,4}/g)?.["join"]('-') || pairingCode;
+        pairingCode = pairingCode?.match(/.{1,4}/g)?.join('-') || pairingCode;
         console.log(chalk.yellow("\n\n🍏 enter the code in WhatsApp."));
         console.log(chalk.black(chalk.bgGreen("\n🟣  Its Code is: ")), chalk.black(chalk.red(pairingCode)));
       }, 3000);
@@ -265,16 +235,8 @@ conn.isInit = false;
 
 if (!opts.test) {
   setInterval(async () => {
-    if (global.db.data) {
-      await global.db.write().catch(console.error);
-    }
-    if (opts.autocleartmp) {
-      try {
-        clearTmp();
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    if (global.db.data) await global.db.write().catch(console.error);
+    if (opts.autocleartmp) await clearTmp().catch(console.error);
   }, 60000);
 }
 
@@ -287,17 +249,25 @@ async function clearTmp() {
   const tmpFiles = [];
   
   tmpDirs.forEach(dir => {
-    readdirSync(dir).forEach(file => {
-      tmpFiles.push(join(dir, file));
-    });
+    if (existsSync(dir)) {
+      readdirSync(dir).forEach(file => {
+        tmpFiles.push(join(dir, file));
+      });
+    }
   });
   
   return tmpFiles.map(filePath => {
-    const stats = statSync(filePath);
-    if (stats.isFile() && Date.now() - stats.mtimeMs >= 60000) {
-      return unlinkSync(filePath);
+    try {
+      const stats = statSync(filePath);
+      if (stats.isFile() && Date.now() - stats.mtimeMs >= 60000) {
+        unlinkSync(filePath);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error clearing tmp file:', error);
+      return false;
     }
-    return false;
   });
 }
 
@@ -308,94 +278,72 @@ setInterval(async () => {
 global.botlive = process.env.MODE;
 
 async function connectionUpdate(update) {
-  const {
-    connection: status,
-    lastDisconnect: disconnect,
-    isNewLogin: isNewLogin
-  } = update;
+  const { connection: status, lastDisconnect, isNewLogin } = update;
 
-  if (isNewLogin) {
-    conn.isInit = true;
-  }
+  if (isNewLogin) conn.isInit = true;
 
-  const statusCode = disconnect?.error?.output?.statusCode || 
-                    disconnect?.error?.output?.payload?.statusCode;
+  const statusCode = lastDisconnect?.error?.output?.statusCode || 
+                    lastDisconnect?.error?.output?.payload?.statusCode;
 
   if (statusCode && statusCode !== DisconnectReason.loggedOut && conn?.ws?.socket == null) {
     console.log(await global.reloadHandler(true).catch(console.error));
     global.timestamp.connect = new Date();
   }
 
-  if (global.db.data == null) {
-    loadDatabase();
-  }
+  if (global.db.data == null) loadDatabase();
 
   if (status === 'open') {
-    const {
-        jid: userJid,
-        name: userName
-    } = conn.user;
-    
-    let welcomeMsg = "*Hello there JAWAD-MD User! 👋🏻*\n\n> Simple, Straight Forward But Loaded With Features 🎊, Meet JAWAD-MD WhatsApp Bot.\n\n*Thanks for using JAWAD-MD �*\n\nBot Prefix `" + prefix + "`\n\n> Join WhatsApp Channel :- ⤵️\n\nhttps://whatsapp.com/channel/0029VatOy2EAzNc2WcShQw1j\n\nDon't forget to give star to repo ⬇️\n\nhttps://github.com/JawadTechXD/JAWAD-MD\n\n> © Powered BY JawadTechX 🖤";
+    const { jid } = conn.user;
+    const welcomeMsg = `*Hello there JAWAD-MD User! 👋🏻*\n\n` +
+      `> Simple, Straight Forward But Loaded With Features 🎊, Meet JAWAD-MD WhatsApp Bot.\n\n` +
+      `*Thanks for using JAWAD-MD 🚩*\n\n` +
+      `Bot Prefix \`${prefix}\`\n\n` +
+      `> Join WhatsApp Channel :- ⤵️\n\n` +
+      `https://whatsapp.com/channel/0029VatOy2EAzNc2WcShQw1j\n\n` +
+      `Don't forget to give star to repo ⬇️\n\n` +
+      `https://github.com/JawadTechXD/JAWAD-MD\n\n` +
+      `> © Powered BY JawadTechX 🖤`;
 
-    const imageUrl = 'https://files.catbox.moe/vz20kf.jpg'; 
-    
-    const options = {
-        quoted: null,
-        caption: welcomeMsg,
-        mentions: [userJid]
-    };
-
-    await conn.sendMessage(
-        userJid,
-        {
-            image: { url: imageUrl },
-            caption: welcomeMsg,
-            mentions: [userJid]
-        },
-        options
-    );
+    await conn.sendMessage(jid, { 
+      image: { url: 'https://files.catbox.moe/vz20kf.jpg' },
+      caption: welcomeMsg,
+      mentions: [jid]
+    }, { quoted: null });
     
     console.log(chalk.bold.greenBright("☛ Successfully Connected to WhatsApp. ✅"));
   }
 
-  let disconnectStatusCode = new Boom(disconnect?.error)?.output?.statusCode;
+  const disconnectStatusCode = new Boom(lastDisconnect?.error)?.output?.statusCode;
   
   if (disconnectStatusCode == 405) {
-    await fs.unlinkSync("./sessions/creds.json");
+    await fs.promises.unlink(`./${global.authFile}/creds.json`).catch(() => {});
     console.log(chalk.bold.redBright("[ ⚠ ] Connection replaced, Please wait a moment I'm going to restart...\nIf error appears start again with : npm start"));
-    process.send("reset");
+    process.send?.("reset");
   }
 
   if (status === "close") {
     switch (disconnectStatusCode) {
       case DisconnectReason.badSession:
-        conn.logger.error("[ ⚠ ] session error please change the session by " + global.authFile + " pairing again.");
+        conn.logger.error(`[ ⚠ ] Session error, please change the session by ${global.authFile} pairing again.`);
         break;
       case DisconnectReason.connectionClosed:
-        conn.logger.warn("[ ⚠ ] Closed connection, reconnecting...");
-        await global.reloadHandler(true).catch(console.error);
-        break;
       case DisconnectReason.connectionLost:
-        conn.logger.warn("[ ⚠ ] Lost connection to the server, reconnecting...");
+      case DisconnectReason.timedOut:
+        conn.logger.warn("[ ⚠ ] Connection issue, reconnecting...");
         await global.reloadHandler(true).catch(console.error);
         break;
       case DisconnectReason.connectionReplaced:
-        conn.logger.error("[ ⚠ ] Connection replaced, another new session has been opened. Please log out first.");
+        conn.logger.error("[ ⚠ ] Connection replaced, another new session opened. Please log out first.");
         break;
       case DisconnectReason.loggedOut:
-        conn.logger.error("[ ⚠ ] Closed connection, Please change the session " + global.authFile + " use jawad pair site or .getpair command get a new session.");
+        conn.logger.error(`[ ⚠ ] Closed connection, Please change the session ${global.authFile} use jawad pair site or .getpair command`);
         break;
       case DisconnectReason.restartRequired:
-        conn.logger.info("[ ⚠ ] Restart required, restart the server if you have any problems.");
-        await global.reloadHandler(true).catch(console.error);
-        break;
-      case DisconnectReason.timedOut:
-        conn.logger.warn("[ ⚠ ] Connection time, reconnecting...");
+        conn.logger.info("[ ⚠ ] Restart required, restarting...");
         await global.reloadHandler(true).catch(console.error);
         break;
       default:
-        conn.logger.warn("[ ⚠ ] Unknown disconnect reason. " + (disconnectStatusCode || '') + ": " + (status || ''));
+        conn.logger.warn(`[ ⚠ ] Unknown disconnect reason: ${disconnectStatusCode || 'unknown'}`);
         await global.reloadHandler(true).catch(console.error);
     }
   }
@@ -408,10 +356,8 @@ let handler = await import('./handler.js');
 
 global.reloadHandler = async function (restartConn) {
   try {
-    const newHandler = await import('./handler.js?update=' + Date.now()).catch(console.error);
-    if (Object.keys(newHandler || {}).length) {
-      handler = newHandler;
-    }
+    const newHandler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
+    if (Object.keys(newHandler || {}).length) handler = newHandler;
   } catch (error) {
     console.error(error);
   }
@@ -423,11 +369,7 @@ global.reloadHandler = async function (restartConn) {
     } catch {}
     
     conn.ev.removeAllListeners();
-    const connState = {
-      chats: oldChats
-    };
-    
-    global.conn = makeWASocket(connectionOptions, connState);
+    global.conn = makeWASocket(connectionOptions, { chats: oldChats });
     isInit = true;
   }
 
@@ -473,14 +415,14 @@ const pluginFilter = filename => /\.js$/.test(filename);
 global.plugins = {};
 
 async function filesInit() {
-  for (let pluginFile of readdirSync(pluginFolder).filter(pluginFilter)) {
+  for (let filename of readdirSync(pluginFolder).filter(pluginFilter)) {
     try {
-      let pluginPath = global.__filename(join(pluginFolder, pluginFile));
-      const pluginModule = await import(pluginPath);
-      global.plugins[pluginFile] = pluginModule.default || pluginModule;
+      let file = global.__filename(join(pluginFolder, filename));
+      let module = await import(file);
+      global.plugins[filename] = module.default || module;
     } catch (error) {
       conn.logger.error(error);
-      delete global.plugins[pluginFile];
+      delete global.plugins[filename];
     }
   }
 }
@@ -490,11 +432,10 @@ filesInit()
   .catch(console.error);
 
 global.reload = async (event, filename) => {
-  if (/\.js$/.test(filename)) {
-    let pluginPath = global.__filename(join(pluginFolder, filename), true);
-    
+  if (pluginFilter(filename)) {
+    let file = global.__filename(join(pluginFolder, filename), true);
     if (filename in global.plugins) {
-      if (existsSync(pluginPath)) {
+      if (existsSync(file)) {
         conn.logger.info(`🌟 Updated Plugin - '${filename}'`);
       } else {
         conn.logger.warn(`🗑️ Plugin Removed - '${filename}'`);
@@ -504,21 +445,19 @@ global.reload = async (event, filename) => {
       conn.logger.info(`✨ New plugin - '${filename}'`);
     }
 
-    const syntaxOptions = {
+    const err = syntaxError(readFileSync(file), filename, {
       sourceType: "module",
       allowAwaitOutsideFunction: true
-    };
-
-    let syntaxErrorResult = syntaxError(readFileSync(pluginPath), filename, syntaxOptions);
+    });
     
-    if (syntaxErrorResult) {
-      conn.logger.error(`syntax error while loading '${filename}'\n${format(syntaxErrorResult)}`);
+    if (err) {
+      conn.logger.error(`syntax error while loading '${filename}'\n${format(err)}`);
     } else {
       try {
-        const pluginModule = await import(global.__filename(pluginPath) + '?update=' + Date.now());
-        global.plugins[filename] = pluginModule.default || pluginModule;
+        const module = await import(`${global.__filename(file)}?update=${Date.now()}`);
+        global.plugins[filename] = module.default || module;
       } catch (error) {
-        conn.logger.error(`error require plugin '${filename}\n${format(error)}'`);
+        conn.logger.error(`error loading plugin '${filename}'\n${format(error)}`);
       } finally {
         global.plugins = Object.fromEntries(
           Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b))
@@ -533,7 +472,7 @@ watch(pluginFolder, global.reload);
 await global.reloadHandler();
 
 async function _quickTest() {
-  let testResults = await Promise.all([
+  const test = await Promise.all([
     spawn('ffmpeg'),
     spawn('ffprobe'),
     spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-filter_complex', 'color', '-frames:v', '1', '-f', 'webp', '-']),
@@ -554,9 +493,8 @@ async function _quickTest() {
     ]);
   }));
 
-  let [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = testResults;
-  
-  const support = {
+  const [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = test;
+  global.support = {
     ffmpeg,
     ffprobe,
     ffmpegWebp,
@@ -565,20 +503,18 @@ async function _quickTest() {
     gm,
     find
   };
-
-  let supportCheck = global.support = support;
   Object.freeze(global.support);
 
-  if (!supportCheck.ffmpeg) {
+  if (!global.support.ffmpeg) {
     conn.logger.warn("Please install ffmpeg for sending videos (pkg install ffmpeg)");
   }
   
-  if (supportCheck.ffmpeg && !supportCheck.ffmpegWebp) {
-    conn.logger.warn("Stickers may not animated without libwebp on ffmpeg (--enable-ibwebp while compiling ffmpeg)");
+  if (global.support.ffmpeg && !global.support.ffmpegWebp) {
+    conn.logger.warn("Stickers may not be animated without libwebp on ffmpeg (--enable-libwebp while compiling ffmpeg)");
   }
   
-  if (!supportCheck.convert && !supportCheck.magick && !supportCheck.gm) {
-    conn.logger.warn("Stickers may not work without imagemagick if libwebp on ffmpeg doesnt isntalled (pkg install imagemagick)");
+  if (!global.support.convert && !global.support.magick && !global.support.gm) {
+    conn.logger.warn("Stickers may not work without imagemagick if libwebp on ffmpeg isn't installed (pkg install imagemagick)");
   }
 }
 
