@@ -1,7 +1,7 @@
 import './config.js';
 import dotenv from 'dotenv';
 import { createRequire } from 'module';
-import path, { join } from 'path';
+import path, { join, dirname as pathDirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { platform } from 'process';
 import 'ws';
@@ -39,7 +39,7 @@ const {
   jidNormalizedUser,
   PHONENUMBER_MCC,
   Browsers
-} = await (await import("@whiskeysockets/baileys"))["default"];
+} = await (await import("@whiskeysockets/baileys")).default;
 
 dotenv.config();
 
@@ -71,7 +71,7 @@ global.__filename = function filename(url = import.meta.url, isUnix = platform !
 };
 
 global.__dirname = function dirname(path) {
-  return path.dirname(global.__filename(path, true));
+  return pathDirname(global.__filename(path, true));
 };
 
 global.__require = function require(url = import.meta.url) {
@@ -151,7 +151,7 @@ const userDevicesCacheConfig = {
 
 const userDevicesCache = new NodeCache(userDevicesCacheConfig);
 
-let phoneNumber = global.botNumber[0];
+let phoneNumber = global.botNumber?.[0];
 const methodCodeQR = process.argv.includes('qr');
 const methodCode = !!phoneNumber || process.argv.includes("code");
 const MethodMobile = process.argv.includes("mobile");
@@ -330,7 +330,7 @@ async function connectionUpdate(update) {
     loadDatabase();
   }
 
-if (status === 'open') {
+  if (status === 'open') {
     const {
         jid: userJid,
         name: userName
@@ -346,7 +346,6 @@ if (status === 'open') {
         mentions: [userJid]
     };
 
-    // Send image with caption
     await conn.sendMessage(
         userJid,
         {
@@ -358,7 +357,7 @@ if (status === 'open') {
     );
     
     console.log(chalk.bold.greenBright("☛ Successfully Connected to WhatsApp. ✅"));
-}
+  }
 
   let disconnectStatusCode = new Boom(disconnect?.error)?.output?.statusCode;
   
@@ -441,7 +440,6 @@ global.reloadHandler = async function (restartConn) {
     conn.ev.off("creds.update", conn.credsUpdate);
   }
 
-  // Set up message templates
   conn.welcome = "Hello @user\nWelcome to @group";
   conn.bye = "Goodbye @user";
   conn.spromote = "@user Now he is an administrator";
@@ -451,7 +449,6 @@ global.reloadHandler = async function (restartConn) {
   conn.sIcon = "The group icon has been changed";
   conn.sRevoke = "The group link has been changed to \n@revoke";
 
-  // Bind event handlers
   conn.handler = handler.handler.bind(global.conn);
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
@@ -459,7 +456,6 @@ global.reloadHandler = async function (restartConn) {
   conn.connectionUpdate = connectionUpdate.bind(global.conn);
   conn.credsUpdate = saveCreds.bind(global.conn, true);
 
-  // Set up event listeners
   conn.ev.on("messages.upsert", conn.handler);
   conn.ev.on('group-participants.update', conn.participantsUpdate);
   conn.ev.on('groups.update', conn.groupsUpdate);
@@ -524,7 +520,6 @@ global.reload = async (event, filename) => {
       } catch (error) {
         conn.logger.error(`error require plugin '${filename}\n${format(error)}'`);
       } finally {
-        // Sort plugins alphabetically
         global.plugins = Object.fromEntries(
           Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b))
         );
@@ -574,7 +569,6 @@ async function _quickTest() {
   let supportCheck = global.support = support;
   Object.freeze(global.support);
 
-  // Log warnings for missing dependencies
   if (!supportCheck.ffmpeg) {
     conn.logger.warn("Please install ffmpeg for sending videos (pkg install ffmpeg)");
   }
