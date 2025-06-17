@@ -1,9 +1,9 @@
-name: jawadmd
+name: jawad-md
 services:
   - name: jawad-md-service
     type: web
     ports:
-      - 3000
+      - 5000
     routes:
       - path: "/"
     build:
@@ -12,3 +12,4 @@ services:
     regions:
       - fra
       - sin
+      
