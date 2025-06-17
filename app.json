@@ -58,14 +58,14 @@
       "value": "*Status Seen By JAWAD-MD 👻🤍*"
     },
     "OWNER_NAME": {
-      "description": "set your status reply message",
+      "description": "set owner name",
       "required": false,
       "value": "JAWAD-MD"
     },
     "OWNER_NUMBER": {
-      "description": "set your status reply message",
+      "description": "set your owner number",
       "required": false,
-      "value": "92310344XXXX"
+      "value": "923427582273"
     },
     "AUTO_READ": {
       "description": "make it true if you want bot to read message",
