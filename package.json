@@ -3,6 +3,10 @@
   "version": "10.8.1",
   "description": "JAWAD-XMD latest multi device whatsapp bot",
   "main": "index.js",
+  "engines": {
+  "node": ">=20.x",
+  "npm": ">=10.x"
+  },
   "type": "module",
   "scripts": {
     "start": "pm2 start index.js --deep-monitoring --attach --name JAWAD-XMD",
@@ -13,7 +17,7 @@
   "author": "JawadTechX",
   "license": "ISC",
   "dependencies": {
-    "@whiskeysockets/baileys": "github:gatanina-li/baileys",
+    "@whiskeysockets/baileys": "github:EdderBot02/bail",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google/generative-ai": "^0.9.0",
     "@hapi/boom": "^10.0.1",
